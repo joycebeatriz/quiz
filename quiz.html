@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Interactive Quiz</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    .quiz-container {
+      max-width: 600px;
+      margin: 40px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+      background-size: cover;
+      background-position: center;
+      position: relative;
+      background-color: rgba(255, 255, 255, 0.5);
+    }
+    .question {
+      margin-bottom: 10px;
+    }
+    .answer-option input[type="radio"] {
+      display: none;
+    }
+    .answer-option {
+      margin-bottom: 12px;
+    }
+    .answer-option label {
+      position: relative;
+      padding-left: 30px;
+      cursor: pointer;
+    }
+    .answer-option label::before {
+      content: '';
+      position: absolute;
+      left: 0px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      border: 2px solid #941A80;
+      border-radius: 50%;
+      box-sizing: border-box;
+    }
+    .answer-option input[type="radio"]:checked + label::before {
+      background-color: #941A80;
+      border-color: #941A80;
+    }
+    .btn-group {
+      margin-top: 20px;
+      text-align: center;
+    }
+    .btn-group button {
+      background-color: #941A80;
+      color: #fff;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 30px;
+      cursor: pointer;
+      margin: 0 5px;
+    }
+    .btn-group button:hover {
+      background-color: #4f93ad;
+    }
+    .result {
+      font-size: 16px;
+      margin-top: 20px;
+    }
+    .result.correct {
+      color: #2ecc71;
+    }
+    .result.incorrect {
+      color: #e74c3c;
+    }
+    .question-counter {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .question-feedback {
+      font-style: italic;
+      color: #ffffff;
+      margin-top: 5px;
+    }
+    .answers-list {
+      padding: 0;
+      list-style-type: none;
+    }
+    .answer-item {
+      border: 1px solid #ccc;
+      background-color: #941A80;
+      color: white;
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 20px; /* Adicionando borda arredondada */
+    }
+    .answer-item.correct {
+      background-color: #2ecc71;
+    }
+    .answer-item.incorrect {
+      background-color: #e74c3c;
+    }
+  </style>
+</head>
+<body>
+  <div class="quiz-container">
+    <h2>Quiz</h2>
+    <form id="quiz-form">
+        <div class="question-counter">
+            <span id="question-number">1</span> de <span id="total-questions">2</span>
+        </div>
+        <div class="progress-bar">
+            <div id="progress" class="progress" style="width: 0%;"></div>
+        </div>
+        
+      <div class="question">
+        <p id="question-text"></p>
+        <div id="answer-options"></div>
+      </div>
+      <div class="btn-group">
+        <button class="submit-btn" type="submit">Enviar</button>
+        <button class="next-btn" type="button" style="display: none;">Próxima Questão</button>
+        <button class="view-results-btn" type="button" style="display: none;">Visualizar Respostas</button>
+      </div>
+      <div id="result" class="result"></div>
+    </form>
+
+    <script>
+    const form = document.getElementById('quiz-form');
+const questionText = document.querySelector('#question-text');
+const questionNumber = document.querySelector('#question-number');
+const totalQuestions = document.querySelector('#total-questions');
+const resultDiv = document.querySelector('#result');
+const answerOptionsDiv = document.querySelector('#answer-options');
+const submitBtn = document.querySelector('.submit-btn');
+const nextBtn = document.querySelector('.next-btn');
+const viewResultsBtn = document.querySelector('.view-results-btn');
+let currentQuestion = 0;
+let score = 0;
+let answers = [];
+
+const questions = [
+    {
+        question: "Questão 1) O termo 'bug' foi originalmente usado por Grace Hopper para descrever um problema em um computador",
+        answers: ["Verdadeiro", "Falso"],
+        correct: "Verdadeiro",
+        feedback: "Em 1947, Grace Hopper, uma programadora pioneira, descobriu o primeiro bug de computador literalmente. Um inseto (bug) ficou preso nos relés de um computador Mark II da Harvard University, causando um mau funcionamento. Desde então, o termo bug é usado para descrever problemas em programas de computador."
+    },
+    {
+        question: "Questão 2) Computadores quânticos utilizam qubits, que podem estar em estados de 0, 1 ou ambos simultaneamente",
+        answers: ["Verdadeiro", "Falso"],
+        correct: "Verdadeiro",
+        feedback: "Os computadores quânticos utilizam qubits, que podem existir em estados de superposição, permitindo cálculos muito mais rápidos para certos tipos de problemas."
+    }
+];
+
+form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const userAnswer = document.querySelector('input[name="answer"]:checked');
+    if (!userAnswer) {
+        alert('Por favor, selecione uma resposta.');
+        return;
+    }
+    const userAnswerValue = userAnswer.value;
+    answers[currentQuestion] = userAnswerValue;
+    const correctAnswer = questions[currentQuestion].correct;
+    if (userAnswerValue === correctAnswer) {
+        score++;
+        resultDiv.innerHTML = `Correto!`;
+        resultDiv.className = 'result correct';
+    } else {
+        resultDiv.innerHTML = `Incorreto.`;
+        resultDiv.className = 'result incorrect';
+    }
+    // Mostrar o feedback após a resposta
+    resultDiv.innerHTML += `<br>${questions[currentQuestion].feedback}`;
+
+    // Verificar se é a última pergunta
+    if (currentQuestion === questions.length - 1) {
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'none';
+        viewResultsBtn.style.display = 'inline-block'; // Mostrar o botão "Ver Respostas"
+    } else {
+        submitBtn.style.display = 'none';
+        nextBtn.style.display = 'inline-block'; // Mostrar o botão "Próxima Questão"
+    }
+});
+
+nextBtn.addEventListener('click', () => {
+    currentQuestion++;
+    if (currentQuestion < questions.length) {
+        showQuestion(currentQuestion);
+        resultDiv.innerHTML = '';
+        resultDiv.className = 'result';
+        submitBtn.style.display = 'inline-block';
+        nextBtn.style.display = 'none';
+        viewResultsBtn.style.display = 'none'; // Garantir que o botão "Ver Respostas" não apareça antes de terminar o quiz
+    }
+});
+
+viewResultsBtn.addEventListener('click', () => {
+    showFinalResult();
+    viewResultsBtn.style.display = 'none';
+});
+
+function showQuestion(qIndex) {
+    questionText.innerHTML = questions[qIndex].question;
+    const answerOptions = questions[qIndex].answers;
+    let answerHTML = '';
+    answerOptions.forEach((option) => {
+        const isChecked = answers[qIndex] === option ? 'checked' : '';
+        answerHTML += `
+            <div class="answer-option">
+              <input type="radio" id="${option}" name="answer" value="${option}" ${isChecked}>
+              <label for="${option}">${option}</label>
+            </div>
+          `;
+    });
+    answerOptionsDiv.innerHTML = answerHTML;
+
+    // Esconder o feedback anterior se houver
+    const prevFeedback = answerOptionsDiv.querySelector('.question-feedback');
+    if (prevFeedback) {
+        prevFeedback.remove();
+    }
+
+    updateQuestionCounter(qIndex);
+}
+
+function showFinalResult() {
+    resultDiv.innerHTML = `Você completou o quiz! Você acertou ${score} de ${questions.length} questões.`;
+    resultDiv.className = 'result';
+
+    let answersHTML = '<h3>Suas Respostas:</h3><ul class="answers-list">';
+
+    answers.forEach((answer, index) => {
+        const questionText = questions[index].question;
+        const userAnswer = answer;
+        const correctAnswer = questions[index].correct;
+        const feedback = questions[index].feedback;
+        const isCorrect = userAnswer === correctAnswer ? 'correct' : 'incorrect';
+
+        answersHTML += `
+            <li class="answer-item ${isCorrect}">
+              ${questionText}<br><br>
+              Sua resposta: <span style="font-style: italic;">${userAnswer}</span><br><br>
+              Resposta correta: ${correctAnswer}<br><br>
+              Feedback: <span class="question-feedback">${feedback}</span>
+            </li><br>
+          `;
+    });
+
+    answersHTML += '</ul>';
+    resultDiv.innerHTML += answersHTML;
+}
+
+function updateQuestionCounter(qIndex) {
+    questionNumber.textContent = qIndex + 1;
+    totalQuestions.textContent = questions.length;
+}
+
+// Mostrar a primeira questão ao carregar a página
+showQuestion(currentQuestion);
+
+    </script>
+  </div>
+</body>
+</html>
